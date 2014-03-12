@@ -22,6 +22,7 @@ function AND(numInputs) {
     var size         = (2 * (Math.floor(this.numInputs / 2))) + 1;
     this.dimension   = {'row': size, 'col': size};  // Height and width of component
 }
+
 AND.prototype = new Component();
 
 /*****************************************************************************

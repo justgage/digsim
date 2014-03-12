@@ -402,7 +402,7 @@ Digsim.prototype.getComponent = function() {
     var index, comp;
 
     // Get the Component
-    if (ph instanceof Array) {
+    if (ph instanceof Array) { // NOTE:: This will be true on objects
         index = digsim.getWireIndex();
         if (index != -1 && ph[index])
             comp = digsim.components.getComponent(ph[index].ref);
@@ -1066,6 +1066,7 @@ Digsim.prototype.onButtonClicked = function(event) {
             // Define a safety buffer to pass through
             digsim.maxSchematicLoop *= 3;
 
+            // NOTE: this may be the reason muxs somtimes missbehave.
             // Loop through each driver and pass state
             for (i = 0, len = digsim.drivers.length; i < len; ++i) {
                 comp = digsim.components.getComponent(digsim.drivers[i]);
@@ -2219,7 +2220,7 @@ Digsim.prototype.route = function(startRef, targetRef, returnPath, obj) {
         this.r = r || 0;
         this.c = c || 0;
         this.p = p || undefined;
-    };
+    }
 
     var neighbors = [];
     var u;
@@ -2350,14 +2351,13 @@ Digsim.prototype.route = function(startRef, targetRef, returnPath, obj) {
     var path = [];
     var currBranch = {'r':0,'c':0};
     var currStart = start;
-    var validPlacement;
-    prevDy = S[1].r - S[0].r;
-    prevDx = S[1].c - S[0].c;
+    var prevDy = S[1].r - S[0].r;
+    var prevDx = S[1].c - S[0].c;
     currBranch.r += prevDy;
     currBranch.c += prevDx;
     for (var i = 1, len = S.length - 1; i < len; ++i) {
-        dx = S[i + 1].c - S[i].c;
-        dy = S[i + 1].r - S[i].r;
+        var dx = S[i + 1].c - S[i].c;
+        var dy = S[i + 1].r - S[i].r;
         if (dx !== prevDx && dy !== prevDy) {
             if (returnPath) {
                 path.push( {'x':Math.abs(currBranch.c + currStart.c),'y':Math.abs(currBranch.r + currStart.r)} );
@@ -2499,7 +2499,6 @@ Digsim.prototype.checkAdj = function(curr, d, target) {
                    (typeof array[3] !== 'undefined' && digsim.components.getComponent(array[3].ref).type === digsim.WIRE);
                    // console.log("("+c+","+(r-1)+") is "+(t?"":"not ")+"valid for current ("+c+","+r+")");
                    return ((r - 1) === target.r && c === target.c) ? true : t;
-            break;
         case 1: // moving right
             array = digsim.placeholders[r][c+1];
             t =    (typeof array[0] !== 'undefined' && digsim.components.getComponent(array[0].ref).type === digsim.WIRE) &&
@@ -2508,7 +2507,6 @@ Digsim.prototype.checkAdj = function(curr, d, target) {
                    (typeof array[3] === 'undefined');
                    // console.log("("+(c+1)+","+r+") is "+(t?"":"not ")+"valid for current ("+c+","+r+")");
                    return (r === target.r && (c + 1) === target.c) ? true : t;
-                break;
         case 2: // moving down
             array = digsim.placeholders[r+1][c];
             t =    (typeof array[0] === 'undefined') &&
@@ -2517,7 +2515,6 @@ Digsim.prototype.checkAdj = function(curr, d, target) {
                    (typeof array[3] !== 'undefined' && digsim.components.getComponent(array[3].ref).type === digsim.WIRE);
                    // console.log("("+c+","+(r+1)+") is "+(t?"":"not ")+"valid for current ("+c+","+r+")");
                    return ((r + 1) === target.r && c === target.c) ? true : t;
-            break;
         default: // moving left
             array = digsim.placeholders[r][c-1];
             t =    (typeof array[0] !== 'undefined' && digsim.components.getComponent(array[0].ref).type === digsim.WIRE) &&
