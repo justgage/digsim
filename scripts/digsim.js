@@ -850,6 +850,7 @@ Digsim.prototype.onMouseUp = function(event) {
                 else if (start.r >= 0 && target.r >= 0) {
                     digsim.route(start, target);
 
+                    console.assert(typeof connectedComp !== "undefined", "Gage: Connected component is undefined?");
                     connectedComp.deleteConnections();
                     connectedComp.checkConnections();
                 }
@@ -2065,7 +2066,7 @@ Digsim.prototype.showComponentMenu = function() {
     $('#component-name').html(name);
     $('#component-label').val(comp.label);
     $('.component-menu').show();
-    $('#component-label').blur();
+    $('#component-label').focus().select();
 };
 
 /*****************************************************************************
@@ -2191,6 +2192,7 @@ Digsim.prototype.clearMessages = function() {
 Digsim.prototype.route = function(startRef, targetRef, returnPath, obj) {
     var start = {'c': startRef.c, 'r': startRef.r};     // JSON objects are pass by reference, and we don't want
     var target = {'c': targetRef.c, 'r': targetRef.r};  // to change the original data - so here, we make a copy...
+    var placeholders = digsim.placeholders;
 
     // If click is in the same spot, we're done placing the wire.
     if (start.r === target.r && start.c === target.c) {
@@ -2204,7 +2206,10 @@ Digsim.prototype.route = function(startRef, targetRef, returnPath, obj) {
         }
         return;
     }
-    if (typeof digsim.placeholders[target.r][target.c] !== 'undefined' || digsim.mode === digsim.DEFAULT_MODE) {
+
+    console.assert(typeof placeholders[target.r] !== "undefined", "digsim.placeholder doesn't exist");
+
+    if ( typeof placeholders[target.r][target.c] !== 'undefined' || digsim.mode === digsim.DEFAULT_MODE ) {
         digsim.endRoute = true;
     }
     else {
@@ -2230,6 +2235,7 @@ Digsim.prototype.route = function(startRef, targetRef, returnPath, obj) {
     var dist = [];
     var Q = [];
     var prev = [];
+    var i;
     prev.push(new node(start.r, start.c));
 
     // Initialize all arrays
@@ -2238,7 +2244,7 @@ Digsim.prototype.route = function(startRef, targetRef, returnPath, obj) {
         Q[r] = [];
         for (var c = 0; c < digsim.NUM_COLS; ++c) {
             dist[r][c] = Infinity;
-            Q[r][c] = digsim.placeholders[r][c]; // placeholders go here
+            Q[r][c] = placeholders[r][c]; // placeholders go here
         }
     }
 
@@ -2269,11 +2275,11 @@ Digsim.prototype.route = function(startRef, targetRef, returnPath, obj) {
         // Neighbor above
         if ((u.r - 1) >= 0) {
             if (typeof Q[u.r - 1][u.c] === 'undefined' &&
-                !(digsim.placeholders[u.r - 1][u.c] instanceof Array) &&
-                typeof digsim.placeholders[u.r - 1][u.c] === 'undefined') {
+                !(placeholders[u.r - 1][u.c] instanceof Array) &&
+                typeof placeholders[u.r - 1][u.c] === 'undefined') {
                 neighbors.push( {'r': u.r - 1, 'c': u.c} );
             }
-            else if (digsim.placeholders[u.r - 1][u.c] instanceof Array) {
+            else if (placeholders[u.r - 1][u.c] instanceof Array) {
                 if (digsim.checkAdj(u, 0, target)) {
                     neighbors.push( {'r': u.r - 1, 'c': u.c} );
                 }
@@ -2282,11 +2288,11 @@ Digsim.prototype.route = function(startRef, targetRef, returnPath, obj) {
         // Neighbor right
         if ((u.c + 1) < (digsim.NUM_COLS - 1)) {
             if (typeof Q[u.r][u.c + 1] === 'undefined' &&
-                !(digsim.placeholders[u.r][u.c + 1] instanceof Array) &&
-                 typeof digsim.placeholders[u.r][u.c + 1] === 'undefined') {
+                !(placeholders[u.r][u.c + 1] instanceof Array) &&
+                 typeof placeholders[u.r][u.c + 1] === 'undefined') {
                 neighbors.push( {'r': u.r, 'c': u.c + 1} );
             }
-            else if (digsim.placeholders[u.r][u.c + 1] instanceof Array) {
+            else if (placeholders[u.r][u.c + 1] instanceof Array) {
                 if (digsim.checkAdj(u, 1, target)) {
                     neighbors.push( {'r': u.r, 'c': u.c + 1} );
                 }
@@ -2295,11 +2301,11 @@ Digsim.prototype.route = function(startRef, targetRef, returnPath, obj) {
         // Neighbor below
         if ((u.r + 1) <= (digsim.NUM_ROWS - 1)) {
             if ((typeof Q[u.r + 1][u.c] === 'undefined') &&
-                !(digsim.placeholders[u.r + 1][u.c] instanceof Array) &&
-                (typeof digsim.placeholders[u.r + 1][u.c] === 'undefined')) {
+                !(placeholders[u.r + 1][u.c] instanceof Array) &&
+                (typeof placeholders[u.r + 1][u.c] === 'undefined')) {
                     neighbors.push( {'r': u.r + 1, 'c': u.c} );
             }
-            else if (digsim.placeholders[u.r + 1][u.c] instanceof Array) {
+            else if (placeholders[u.r + 1][u.c] instanceof Array) {
                 if (digsim.checkAdj(u, 2, target)) {
                     neighbors.push( {'r': u.r + 1, 'c': u.c} );
                 }
@@ -2308,11 +2314,11 @@ Digsim.prototype.route = function(startRef, targetRef, returnPath, obj) {
         // Neighbor left
         if ((u.c - 1) >= 0) {
             if (typeof Q[u.r][u.c - 1] === 'undefined' &&
-                !(digsim.placeholders[u.r][u.c - 1] instanceof Array) &&
-                typeof digsim.placeholders[u.r][u.c - 1] === 'undefined') {
+                !(placeholders[u.r][u.c - 1] instanceof Array) &&
+                typeof placeholders[u.r][u.c - 1] === 'undefined') {
                     neighbors.push( {'r': u.r, 'c': u.c - 1} );
             }
-            else if (digsim.placeholders[u.r][u.c - 1] instanceof Array) {
+            else if (placeholders[u.r][u.c - 1] instanceof Array) {
                 if (digsim.checkAdj(u, 3, target)) {
                     neighbors.push( {'r': u.r, 'c': u.c - 1} );
                 }
@@ -2320,7 +2326,7 @@ Digsim.prototype.route = function(startRef, targetRef, returnPath, obj) {
         }
 
         // Add the right neighbor to the path
-        for (var i = 0; i < neighbors.length; ++i) {
+        for (i = 0; i < neighbors.length; ++i) {
             alt = dist[u.r][u.c] + 1;
             if (alt < dist[ neighbors[i].r ][ neighbors[i].c ]) {
                 dist[ neighbors[i].r ][ neighbors[i].c ] = alt;
@@ -2334,6 +2340,7 @@ Digsim.prototype.route = function(startRef, targetRef, returnPath, obj) {
         neighbors = [];
         ++index;
     }
+
     u = prev[prev.length - 1]; // This is the target
     if (u.r !== target.r || u.c !== target.c) { // no path
         digsim.addMessage(digsim.WARNING, "[18]Unable to find valid path for autoroute");
@@ -2353,9 +2360,11 @@ Digsim.prototype.route = function(startRef, targetRef, returnPath, obj) {
     var currStart = start;
     var prevDy = S[1].r - S[0].r;
     var prevDx = S[1].c - S[0].c;
+    var validPlacement;
+    var wire = null;
     currBranch.r += prevDy;
     currBranch.c += prevDx;
-    for (var i = 1, len = S.length - 1; i < len; ++i) {
+    for (i = 1, len = S.length - 1; i < len; ++i) {
         var dx = S[i + 1].c - S[i].c;
         var dy = S[i + 1].r - S[i].r;
         if (dx !== prevDx && dy !== prevDy) {
@@ -2363,7 +2372,7 @@ Digsim.prototype.route = function(startRef, targetRef, returnPath, obj) {
                 path.push( {'x':Math.abs(currBranch.c + currStart.c),'y':Math.abs(currBranch.r + currStart.r)} );
             }
             else {
-                var wire = new Wire();
+                wire = new Wire();
                 if (prevDx === -1 || prevDy === -1) {
                     wire.init(currStart.r + 0.5 + currBranch.r, currStart.c + 0.5 + currBranch.c, 0, digsim.iComp);
                 }
@@ -2374,7 +2383,7 @@ Digsim.prototype.route = function(startRef, targetRef, returnPath, obj) {
                 wire.dy = Math.abs(prevDy);
                 wire.path = { 'x':Math.abs(currBranch.c),'y':Math.abs(currBranch.r ) };
 
-                var validPlacement = digsim.setPlaceholders(wire, true);
+                validPlacement = digsim.setPlaceholders(wire, true);
                 if (validPlacement) {
                     digsim.components.add(wire);
                     digsim.iComp++;
@@ -2425,7 +2434,7 @@ Digsim.prototype.route = function(startRef, targetRef, returnPath, obj) {
         obj.dx = (obj.path.x ? 1 : 0);
         obj.dy = (obj.path.y ? 1 : 0);
 
-        var validPlacement = digsim.setPlaceholders(obj, true);
+        validPlacement = digsim.setPlaceholders(obj, true);
         obj.drawStatic = true;
     }
     else if (returnPath) {
@@ -2434,7 +2443,7 @@ Digsim.prototype.route = function(startRef, targetRef, returnPath, obj) {
     }
     // Place a new wire
     else {
-        var wire = new Wire();
+        wire = new Wire();
         if (prevDx === -1 || prevDy === -1) {
             wire.init(currStart.r + 0.5 + currBranch.r, currStart.c + 0.5 + currBranch.c, 0, digsim.iComp);
         }
@@ -2445,7 +2454,7 @@ Digsim.prototype.route = function(startRef, targetRef, returnPath, obj) {
         wire.dy = Math.abs(prevDy);
         wire.path = { 'x':Math.abs(currBranch.c),'y':Math.abs(currBranch.r ) };
 
-        var validPlacement = digsim.setPlaceholders(wire, true);
+        validPlacement = digsim.setPlaceholders(wire, true);
         if (validPlacement) {
             digsim.components.add(wire);
             digsim.iComp++;
@@ -2546,7 +2555,7 @@ Digsim.prototype.checkAdj = function(curr, d, target) {
  ****************************************************************************/
 function animate() {
     // Only animate if dragging a Component
-    if (!digsim.dragging) {
+    if (digsim.dragging === false) {
         return;
     }
 

@@ -16,18 +16,26 @@
  * @constructor
  ****************************************************************************/
 function Component() {
-    this.row        = 0;      // Row of the top left corner of the Component
-    this.col        = 0;      // Col of the top left corner of the Component
-    this.id         = 0;      // Unique id
-    this.numInputs  = 0;      // Number of input connections
-    this.numOutputs = 0;      // Number of output connections
-    this.rotation   = 0;      // Rotation of Component in 90deg intervals
-    this.state      = -1;     // State (0 or 1) of the Component; -1 means that Component has not been traversed
-    this.type       = 0;      // Unique id for the type of Component
-    this.name       = "";     // Unique name of Component; Must match the name of the class
-    this.label      = "";     // Label displayed for the Component
-    this.drawStatic = true;   // If the Component should be drawn on the static context
-    this.extraSpace = 0;      // If the Component has extra space above and below
+    this.row         = 0;      // Row of the top left corner of the Component
+    this.col         = 0;      // Col of the top left corner of the Component
+    this.id          = 0;      // Unique id
+    this.numInputs   = 0;      // Number of input connections
+    this.numOutputs  = 0;      // Number of output connections
+    this.rotation    = 0;      // Rotation of Component in 90deg intervals
+    this.state       = -1;     // State (0 or 1) of the Component; -1 means that Component has not been traversed
+    this.type        = 0;      // Unique id for the type of Component
+    this.name        = "";     // Unique name of Component; Must match the name of the class
+    this.label       = "";     // Label displayed for the Component
+    this.drawStatic  = true;   // If the Component should be drawn on the static context
+    this.extraSpace  = 0;      // If the Component has extra space above and below
+    this.connections = null;
+    this.inputs      = null;
+    this.outputs     = null;
+    this.zeroDimension = null;
+    this.dimension = {
+       row : 0,
+       col : 0
+    };
 }
 
 /******************************************************************************
@@ -226,8 +234,8 @@ Component.prototype.getComponentSpace = function() {
     }
 
     // Combine the input and output space arrays
-    space = space.concat(this.getComponentInputSpace()).concat(this.getComponentOutputSpace());
-    space = space.concat(this.getExtraComponentSpace(this.extraSpace));
+    space = space.concat( this.getComponentInputSpace() ).concat( this.getComponentOutputSpace() );
+    space = space.concat( this.getExtraComponentSpace( this.extraSpace ) );
 
     return space;
 };
@@ -367,7 +375,12 @@ Component.prototype.checkConnections = function() {
             // Check every index of the space for a connection
             for (i = 0; i < 4; i++) {
                 grid = digsim.placeholders[space.row][space.col];
-                ph   = grid[i];
+
+                if (typeof grid === 'undefined') {
+                   ph = null;
+                } else {
+                   ph   = grid[i];
+                }
 
                 // There is a Component to connect to and it is not already connected
                 if (i !== space.index && ph && ph.connectable && !this[con].contains(digsim.components.getComponent(ph.ref))) {
@@ -388,6 +401,7 @@ Component.prototype.checkConnections = function() {
                         comp.namedConnections[ph.name] = this;
                     }
 
+                    console.assert(typeof comp !== "undefined", "Gage: Component is undefined (so we can't split it)");
                     // Split a Wire
                     if (comp.type === digsim.WIRE && grid[(i+2)%4] && comp.id === grid[(i+2)%4].ref)
                         comp.splitWire(space.row, space.col);
