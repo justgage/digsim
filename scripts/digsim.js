@@ -697,6 +697,7 @@ document.onkeydown = function(event) {
  * @param {Event} event - Mouse move event.
  ****************************************************************************/
 Digsim.prototype.onMouseMove = function(event) {
+   // TODO: fix bug with scolling
     var mouseX = event.offsetX || event.layerX || event.clientX - $(".canvases").position().left;
     var mouseY = event.offsetY || event.layerY || event.clientY - $(".canvases").position().top;
     digsim.mousePos = { x: mouseX, y: mouseY };
@@ -2963,3 +2964,4 @@ Digsim.prototype.test = {
  *  override it
  ****************************************************************************/
 var digsim = digsim || new Digsim();
+
