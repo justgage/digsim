@@ -3497,8 +3497,10 @@ function Digsim() {
     }
 
     // Key codes and hot keys
-    this.KEY_CODES          = {                     // Key code to button HTML ID dictionary.
-        27    : 'esc',                              // 's' and 'c' refer to a 'shift' and 'ctrl' respectively.
+    // Key code to button HTML ID dictionary.
+    // 's' and 'c' refer to a 'shift' and 'ctrl' respectively.
+    this.KEY_CODES          = {                     
+        27    : 'esc',                              
         's65' : 'NAND',
         's82' : 'NOR',
         65    : 'AND',
@@ -3527,7 +3529,9 @@ function Digsim() {
         77    : 'MUX'
 
     };
-    this.HOT_KEYS           = {                     // The hot key text to show for each button (by button HTML ID)
+
+    // The hot key text to show for each button (by button HTML ID)
+    this.HOT_KEYS           = {
         'AND'         : 'A',
         'OR'          : 'R',
         'NOT'         : 'T',
@@ -3807,6 +3811,7 @@ Digsim.prototype.getComponent = function() {
     // Get the Component
     // NOTE This will be true on objects
     if (ph instanceof Array) { 
+       console.assert($.isArray(ph) == false, "Object crept through!");
         index = digsim.getWireIndex();
         if (index != -1 && ph[index])
             comp = digsim.components.getComponent(ph[index].ref);
@@ -4111,13 +4116,16 @@ Digsim.prototype.onMouseMove = function(event) {
     // Show movable Components
     if (digsim.mode === digsim.DEFAULT_MODE && comp && !digsim.dragging) {
         if (comp.type === digsim.WIRE) {
-            if (comp.dx)
+            if (comp.dx) {
                 $("canvas").css('cursor','row-resize');
-            else
+            }
+            else {
                 $("canvas").css('cursor','col-resize');
+            }
         }
-        else
+        else {
             $("canvas").css('cursor','move');
+        }
     }
     else if (digsim.mode === digsim.EDIT_MODE) {
         $("canvas").css('cursor','default');
@@ -4246,7 +4254,11 @@ Digsim.prototype.onMouseUp = function(event) {
 
                      // Wire was merged out
                      if (connectedComp.path.x === 0 && connectedComp.path.y === 0) {
-                        digsim.components.remove(connectedComp);
+                        // TODO This is probably causing the error
+                        // Error:  TypeError: Cannot read property 'type' of undefined
+                        // found in: `Digsim.prototype.checkAdj`
+                        // line 2523 of this file
+                        digsim.components.remove(connectedComp); 
                      }
                      else {
                         connectedComp.drawStatic = true;
