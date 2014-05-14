@@ -402,7 +402,8 @@ Digsim.prototype.getComponent = function() {
     var index, comp;
 
     // Get the Component
-    if (ph instanceof Array) { // NOTE:: This will be true on objects
+    // NOTE This will be true on objects
+    if (ph instanceof Array) { 
         index = digsim.getWireIndex();
         if (index != -1 && ph[index])
             comp = digsim.components.getComponent(ph[index].ref);
@@ -827,34 +828,40 @@ Digsim.prototype.onMouseUp = function(event) {
         var start, target, connectedComp;
         for (var i in digsim.connectionStarts) {
             if (digsim.connectionStarts.hasOwnProperty(i)) {
-                connectedComp = digsim.components.getComponent(i);
-                start = digsim.connectionStarts[i];
-                target = digsim.connectionTargets[i];
+               connectedComp = digsim.components.getComponent(i);
+               // GAGE: make sure it exist, not sure why it's undefined sometimes
+               if (connectedComp) {
 
-                target = {'r': comp.row + target.r, 'c': comp.col + target.c};
+                  start = digsim.connectionStarts[i];
+                  target = digsim.connectionTargets[i];
 
-                // Update an existing Wire
-                if (start.r >= 0 && target.r >= 0 && connectedComp && connectedComp.type === digsim.WIRE) {
-                    digsim.route(start, target, false, connectedComp);
+                  target = {'r': comp.row + target.r, 'c': comp.col + target.c};
 
-                    // Wire was merged out
-                    if (connectedComp.path.x === 0 && connectedComp.path.y === 0) {
+                  // Update an existing Wire
+                  if (start.r >= 0 && target.r >= 0 && connectedComp && connectedComp.type === digsim.WIRE) {
+                     digsim.route(start, target, false, connectedComp);
+
+                     // Wire was merged out
+                     if (connectedComp.path.x === 0 && connectedComp.path.y === 0) {
                         digsim.components.remove(connectedComp);
-                    }
-                    else {
+                     }
+                     else {
                         connectedComp.drawStatic = true;
                         connectedComp.deleteConnections();
                         connectedComp.checkConnections();
-                    }
-                }
-                // Create a new Wire
-                else if (start.r >= 0 && target.r >= 0) {
-                    digsim.route(start, target);
+                     }
+                  }
+                  // Create a new Wire
+                  else if (start.r >= 0 && target.r >= 0) {
+                     digsim.route(start, target);
 
-                    console.assert(typeof connectedComp !== "undefined", "Gage: Connected component is undefined?");
-                    connectedComp.deleteConnections();
-                    connectedComp.checkConnections();
-                }
+                     console.assert(typeof connectedComp !== "undefined", "Gage: Connected component is undefined?");
+                     connectedComp.deleteConnections();
+                     connectedComp.checkConnections();
+                  }
+               }
+            } else {
+               console.warning('connectedComp doesn\'t exist! ->', i);
             }
         }
 
