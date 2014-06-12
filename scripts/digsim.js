@@ -15,6 +15,11 @@
  *  Holds all the constants, animation, and data variables for the program
  * @constructor
  ****************************************************************************/
+
+checkIsArray = function(array) {
+   return Object.prototype.toString.call(array) !== '[object Array]';
+}
+
 function Digsim() {
     // Constants
     this.GRID_ZOOM         = 5;                     // Added or subtracted to gridSize when zooming
@@ -246,6 +251,7 @@ Digsim.prototype.run = function() {
         this.disableControlButtons();
 
         this.drawGrid(this.gridContext);
+
         $('.messages').css('height', this.gridHeight - 37);
     }
 };
@@ -407,11 +413,12 @@ Digsim.prototype.getComponent = function() {
 
     // Get the Component
     // NOTE This will be true on objects
-    if (ph instanceof Array) { 
-       console.assert($.isArray(ph) == false, "Object crept through!");
+    if (checkIsArray(ph)) { 
+
         index = digsim.getWireIndex();
         if (index != -1 && ph[index])
             comp = digsim.components.getComponent(ph[index].ref);
+
     }
     else if (ph) {
         comp = digsim.components.getComponent(ph.ref);
@@ -452,25 +459,29 @@ Digsim.prototype.setPlaceholders = function(comp, nocheck) {
     if (!nocheck) {
         for (i = 0; i < space.length; i++) {
             if (typeof space[i].index !== 'undefined') {
+
                 // If grid space is not an array and already contains a placeholder
-                if (!(this.placeholders[space[i].row][space[i].col] instanceof Array) &&
+                if (!checkIsArray(this.placeholders[space[i].row][space[i].col]) &&
                     this.placeholders[space[i].row][space[i].col]) {
                     digsim.addMessage(digsim.WARNING, "[1]Collision detected! Unable to place component.");
                     return false;
                 }
+
                 // If grid space is an array and already contains a placeholder
-                else if ((this.placeholders[space[i].row][space[i].col] instanceof Array) &&
+                else if (checkIsArray(this.placeholders[space[i].row][space[i].col]) &&
                         this.placeholders[space[i].row][space[i].col][space[i].index]) {
                     digsim.addMessage(digsim.WARNING, "[2]Collision detected! Unable to place component.");
                     return false;
                 }
             }
             else {
+
                 // If gird space already contains a placeholder
                 if (this.placeholders[space[i].row][space[i].col]) {
                     digsim.addMessage(digsim.WARNING, "[3]Collision detected! Unable to place component. ");
                     return false;
                 }
+
             }
         }
     }
@@ -491,7 +502,7 @@ Digsim.prototype.setPlaceholders = function(comp, nocheck) {
 
         if (typeof space[i].index !== 'undefined') {
             // If it's not a 3D array, make it a 3D array
-            if (!(this.placeholders[space[i].row][space[i].col] instanceof Array)) {
+            if (!checkIsArray(this.placeholders[space[i].row][space[i].col])) {
                 this.placeholders[space[i].row][space[i].col] = [];
             }
             this.placeholders[space[i].row][space[i].col][space[i].index] = ph;
@@ -948,7 +959,7 @@ Digsim.prototype.onClick = function(event) {
         // Start the placement of a Wire
         if (!digsim.dragging) {
             // Prevent wires from starting on top of placeholders
-            if (!(typeof digsim.placeholders[row][col] === 'undefined' || digsim.placeholders[row][col] instanceof Array) ||
+            if (!checkIsArray(typeof digsim.placeholders[row][col] === 'undefined' || digsim.placeholders[row][col]) ||
                 Object.keys(digsim.placeholders[row][col] || {}).length === 4) {
                 return;
             }
@@ -2295,11 +2306,11 @@ Digsim.prototype.route = function(startRef, targetRef, returnPath, obj) {
         // Neighbor above
         if ((u.r - 1) >= 0) {
             if (typeof Q[u.r - 1][u.c] === 'undefined' &&
-                !(placeholders[u.r - 1][u.c] instanceof Array) &&
+                !checkIsArray(placeholders[u.r - 1][u.c]) &&
                 typeof placeholders[u.r - 1][u.c] === 'undefined') {
                 neighbors.push( {'r': u.r - 1, 'c': u.c} );
             }
-            else if (placeholders[u.r - 1][u.c] instanceof Array) {
+            else if (checkIsArray(placeholders[u.r - 1][u.c])) {
                 if (digsim.checkAdj(u, 0, target)) {
                     neighbors.push( {'r': u.r - 1, 'c': u.c} );
                 }
@@ -2308,11 +2319,11 @@ Digsim.prototype.route = function(startRef, targetRef, returnPath, obj) {
         // Neighbor right
         if ((u.c + 1) < (digsim.NUM_COLS - 1)) {
             if (typeof Q[u.r][u.c + 1] === 'undefined' &&
-                !(placeholders[u.r][u.c + 1] instanceof Array) &&
+                !(checkIsArray(placeholders[u.r][u.c + 1])) &&
                  typeof placeholders[u.r][u.c + 1] === 'undefined') {
                 neighbors.push( {'r': u.r, 'c': u.c + 1} );
             }
-            else if (placeholders[u.r][u.c + 1] instanceof Array) {
+            else if (checkIsArray(placeholders[u.r][u.c + 1])) {
                 if (digsim.checkAdj(u, 1, target)) {
                     neighbors.push( {'r': u.r, 'c': u.c + 1} );
                 }
@@ -2321,11 +2332,11 @@ Digsim.prototype.route = function(startRef, targetRef, returnPath, obj) {
         // Neighbor below
         if ((u.r + 1) <= (digsim.NUM_ROWS - 1)) {
             if ((typeof Q[u.r + 1][u.c] === 'undefined') &&
-                !(placeholders[u.r + 1][u.c] instanceof Array) &&
+                !(checkIsArray(placeholders[u.r + 1][u.c])) &&
                 (typeof placeholders[u.r + 1][u.c] === 'undefined')) {
                     neighbors.push( {'r': u.r + 1, 'c': u.c} );
             }
-            else if (placeholders[u.r + 1][u.c] instanceof Array) {
+            else if (checkIsArray(placeholders[u.r + 1][u.c])) {
                 if (digsim.checkAdj(u, 2, target)) {
                     neighbors.push( {'r': u.r + 1, 'c': u.c} );
                 }
@@ -2334,11 +2345,11 @@ Digsim.prototype.route = function(startRef, targetRef, returnPath, obj) {
         // Neighbor left
         if ((u.c - 1) >= 0) {
             if (typeof Q[u.r][u.c - 1] === 'undefined' &&
-                !(placeholders[u.r][u.c - 1] instanceof Array) &&
+                !(checkIsArray(placeholders[u.r][u.c - 1])) &&
                 typeof placeholders[u.r][u.c - 1] === 'undefined') {
                     neighbors.push( {'r': u.r, 'c': u.c - 1} );
             }
-            else if (placeholders[u.r][u.c - 1] instanceof Array) {
+            else if (checkIsArray(placeholders[u.r][u.c - 1])) {
                 if (digsim.checkAdj(u, 3, target)) {
                     neighbors.push( {'r': u.r, 'c': u.c - 1} );
                 }
@@ -2514,7 +2525,7 @@ Digsim.prototype.checkAdj = function(curr, d, target) {
     var r = curr.r;
     var c = curr.c;
     var t, array;
-    if (digsim.placeholders[r][c] instanceof Array &&
+    if (checkIsArray(digsim.placeholders[r][c]) &&
         typeof digsim.placeholders[r][c][d] !== 'undefined') {
         return false;
     }
@@ -2522,6 +2533,7 @@ Digsim.prototype.checkAdj = function(curr, d, target) {
     {
         case 0: // moving up
             array = digsim.placeholders[r-1][c];
+            console.assert(typeof array !== "undefined", "moving down bad array");
             t =    (typeof array[0] === 'undefined') &&
                    (typeof array[1] !== 'undefined' && digsim.components.getComponent(array[1].ref).type === digsim.WIRE) &&
                    (typeof array[2] === 'undefined') &&
@@ -2530,6 +2542,7 @@ Digsim.prototype.checkAdj = function(curr, d, target) {
                    return ((r - 1) === target.r && c === target.c) ? true : t;
         case 1: // moving right
             array = digsim.placeholders[r][c+1];
+            console.assert(typeof array !== "undefined", "moving down bad array");
             t =    (typeof array[0] !== 'undefined' && digsim.components.getComponent(array[0].ref).type === digsim.WIRE) &&
                    (typeof array[1] === 'undefined') &&
                    (typeof array[2] !== 'undefined' && digsim.components.getComponent(array[2].ref).type === digsim.WIRE) &&
@@ -2538,6 +2551,8 @@ Digsim.prototype.checkAdj = function(curr, d, target) {
                    return (r === target.r && (c + 1) === target.c) ? true : t;
         case 2: // moving down
             array = digsim.placeholders[r+1][c];
+            console.assert(typeof array !== "undefined", "moving down bad array");
+            
             t =    (typeof array[0] === 'undefined') &&
                    (typeof array[1] !== 'undefined' && digsim.components.getComponent(array[1].ref).type === digsim.WIRE) &&
                    (typeof array[2] === 'undefined') &&
@@ -2546,6 +2561,7 @@ Digsim.prototype.checkAdj = function(curr, d, target) {
                    return ((r + 1) === target.r && c === target.c) ? true : t;
         default: // moving left
             array = digsim.placeholders[r][c-1];
+            console.assert(typeof array !== "undefined", "moving down bad array");
             t =    (typeof array[0] !== 'undefined' && digsim.components.getComponent(array[0].ref).type === digsim.WIRE) &&
                    (typeof array[1] === 'undefined') &&
                    (typeof array[2] !== 'undefined' && digsim.components.getComponent(array[2].ref).type === digsim.WIRE) &&
@@ -2763,7 +2779,7 @@ Digsim.prototype.debug = {
                 col = c;
 
                 // Draw Wire placeholders
-                if (digsim.placeholders[row] && digsim.placeholders[row][col] instanceof Array) {
+                if (checkIsArray(digsim.placeholders[row] && digsim.placeholders[row][col])) {
                     for (var z = 0; z < 4; z++) {
                         if (digsim.placeholders[row][col][z]) {
                             digsim.gridContext.save();
@@ -2976,6 +2992,7 @@ Digsim.prototype.test = {
         return results;
     }
 };
+
 
 /*****************************************************************************
  * NAMESPACE
