@@ -17,7 +17,7 @@
  ****************************************************************************/
 
 checkIsArray = function(array) {
-   return Object.prototype.toString.call(array) !== '[object Array]';
+   return Object.prototype.toString.call(array) === '[object Array]';
 }
 
 function Digsim() {
@@ -412,7 +412,6 @@ Digsim.prototype.getComponent = function() {
     var index, comp;
 
     // Get the Component
-    // NOTE This will be true on objects
     if (checkIsArray(ph)) { 
 
         index = digsim.getWireIndex();
@@ -421,8 +420,8 @@ Digsim.prototype.getComponent = function() {
 
     }
     else if (ph) {
-        comp = digsim.components.getComponent(ph.ref);
-    }
+       comp = digsim.components.getComponent(ph.ref);
+    } 
 
     return comp;
 };
@@ -1801,6 +1800,11 @@ Digsim.prototype.getWireIndex = function() {
     var index     = -1;
     var array     = digsim.placeholders[row][col];
 
+
+    if(typeof array == "undefined") {
+       return undefined;
+    }
+
     if (vert && hor && (array[0] || array[2]) && (array[1] || array[3])) {
         // mid click and multiple wires
         // Determine grid snap for wires not connecting to other wires.
@@ -2525,49 +2529,94 @@ Digsim.prototype.checkAdj = function(curr, d, target) {
     var r = curr.r;
     var c = curr.c;
     var t, array;
+
     if (checkIsArray(digsim.placeholders[r][c]) &&
         typeof digsim.placeholders[r][c][d] !== 'undefined') {
         return false;
     }
-    switch (d)
-    {
-        case 0: // moving up
-            array = digsim.placeholders[r-1][c];
-            console.assert(typeof array !== "undefined", "moving down bad array");
-            t =    (typeof array[0] === 'undefined') &&
-                   (typeof array[1] !== 'undefined' && digsim.components.getComponent(array[1].ref).type === digsim.WIRE) &&
-                   (typeof array[2] === 'undefined') &&
-                   (typeof array[3] !== 'undefined' && digsim.components.getComponent(array[3].ref).type === digsim.WIRE);
-                   // console.log("("+c+","+(r-1)+") is "+(t?"":"not ")+"valid for current ("+c+","+r+")");
-                   return ((r - 1) === target.r && c === target.c) ? true : t;
-        case 1: // moving right
-            array = digsim.placeholders[r][c+1];
-            console.assert(typeof array !== "undefined", "moving down bad array");
-            t =    (typeof array[0] !== 'undefined' && digsim.components.getComponent(array[0].ref).type === digsim.WIRE) &&
-                   (typeof array[1] === 'undefined') &&
-                   (typeof array[2] !== 'undefined' && digsim.components.getComponent(array[2].ref).type === digsim.WIRE) &&
-                   (typeof array[3] === 'undefined');
-                   // console.log("("+(c+1)+","+r+") is "+(t?"":"not ")+"valid for current ("+c+","+r+")");
-                   return (r === target.r && (c + 1) === target.c) ? true : t;
-        case 2: // moving down
-            array = digsim.placeholders[r+1][c];
-            console.assert(typeof array !== "undefined", "moving down bad array");
-            
-            t =    (typeof array[0] === 'undefined') &&
-                   (typeof array[1] !== 'undefined' && digsim.components.getComponent(array[1].ref).type === digsim.WIRE) &&
-                   (typeof array[2] === 'undefined') &&
-                   (typeof array[3] !== 'undefined' && digsim.components.getComponent(array[3].ref).type === digsim.WIRE);
-                   // console.log("("+c+","+(r+1)+") is "+(t?"":"not ")+"valid for current ("+c+","+r+")");
-                   return ((r + 1) === target.r && c === target.c) ? true : t;
-        default: // moving left
-            array = digsim.placeholders[r][c-1];
-            console.assert(typeof array !== "undefined", "moving down bad array");
-            t =    (typeof array[0] !== 'undefined' && digsim.components.getComponent(array[0].ref).type === digsim.WIRE) &&
-                   (typeof array[1] === 'undefined') &&
-                   (typeof array[2] !== 'undefined' && digsim.components.getComponent(array[2].ref).type === digsim.WIRE) &&
-                   (typeof array[3] === 'undefined');
-                   // console.log("("+(c-1)+","+r+") is "+(t?"":"not ")+"valid for current ("+c+","+r+")");
-                   return (r === target.r && (c - 1) === target.c) ? true : t;
+
+    // checks the indexes of the array to see if they
+    // are blank where they are expected to be
+    assertExists = function(arr, checkArr) {
+       var isTrue = true;
+       var i = 0;
+       var l = arr.length;
+       var compExists = null;
+
+       if (typeof arr === 'undefined') {
+          return false;
+       }
+
+       for(; i < l; i++) {
+
+          compExists = (typeof arr[i] === 'undefined');
+
+          if(compExists !== checkArr[i]) {
+             isTrue = false;
+
+             return false;
+          } else {
+
+             // if there is suppose to be something there
+             if (compExists === true) {
+                comp = digsim.components.getComponent(arr[i]);
+                // make sure it's not undefined
+                if(typeof comp === 'undefined') {
+                   return false;
+                } else {
+                   // make sure it a wire
+                   if(comp.type !== digsim.WIRE) {
+                      return false;
+                   }
+                }
+             }
+          }
+       }
+
+    }
+
+
+
+      switch (d) {
+
+         case 0: // moving up
+               array = digsim.placeholders[r-1][c];
+               console.assert(typeof array !== "undefined", "moving down bad array");
+
+               t = assertExists(array, [true, false, true, false]);
+
+               return ((r - 1) === target.r && c === target.c) ? true : t;
+
+         case 1: // moving right
+               array = digsim.placeholders[r][c+1];
+               t =   (typeof array[0] !== 'undefined' && digsim.components.getComponent(array[0].ref).type === digsim.WIRE) &&
+                     (typeof array[1] === 'undefined') &&
+                     (typeof array[2] !== 'undefined' && digsim.components.getComponent(array[2].ref).type === digsim.WIRE) &&
+                     (typeof array[3] === 'undefined');
+                     // console.log("("+(c+1)+","+r+") is "+(t?"":"not ")+"valid for current ("+c+","+r+")");
+                     return (r === target.r && (c + 1) === target.c) ? true : t;
+         case 2: // moving down
+               array = digsim.placeholders[r+1][c];
+               
+               t =   (typeof array[0] === 'undefined') &&
+                     (typeof array[1] !== 'undefined' && digsim.components.getComponent(array[1].ref).type === digsim.WIRE) &&
+                     (typeof array[2] === 'undefined') &&
+                     (typeof array[3] !== 'undefined' && digsim.components.getComponent(array[3].ref).type === digsim.WIRE);
+                     // console.log("("+c+","+(r+1)+") is "+(t?"":"not ")+"valid for current ("+c+","+r+")");
+                     return ((r + 1) === target.r && c === target.c) ? true : t;
+         default: // moving left
+               array = digsim.placeholders[r][c-1];
+               t =   (typeof array[0] !== 'undefined' && digsim.components.getComponent(array[0].ref).type === digsim.WIRE) &&
+                     (typeof array[1] === 'undefined') &&
+                     (typeof array[2] !== 'undefined' && digsim.components.getComponent(array[2].ref).type === digsim.WIRE) &&
+                     (typeof array[3] === 'undefined');
+                     // console.log("("+(c-1)+","+r+") is "+(t?"":"not ")+"valid for current ("+c+","+r+")");
+                     return (r === target.r && (c - 1) === target.c) ? true : t;
+      }
+    try {
+       //just holding here for now
+    } catch (e) {
+       console.log("something went wrong", e, array);
     }
 };
 

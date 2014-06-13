@@ -118,10 +118,12 @@ function ComponentList(id) {
      * @return {Components} Found Component or undefined if not in dictionary.
      ****************************************************************************/
     this.getComponent = function(compId) {
-        if ((typeof compId === 'number' || typeof compId === 'string') && components[compId])
+        if ((typeof compId === 'number' || typeof compId === 'string') && components[compId]) {
             return components[compId];
-        else
+        }
+        else {
             return undefined;
+        }
     };
 
     /*****************************************************************************

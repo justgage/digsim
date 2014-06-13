@@ -386,6 +386,11 @@ Component.prototype.checkConnections = function() {
                 if (i !== space.index && ph && ph.connectable && !this[con].contains(digsim.components.getComponent(ph.ref))) {
                     comp = digsim.components.getComponent(ph.ref);
 
+                    if(typeof comp === "undefined") {
+                       console.warn("wire undefined so we can't split it");
+                       return;
+                    };
+
                     if (this.type === digsim.WIRE) {
                         this.connections.add(comp, space.conIndex, true);
                     }
@@ -401,7 +406,6 @@ Component.prototype.checkConnections = function() {
                         comp.namedConnections[ph.name] = this;
                     }
 
-                    console.assert(typeof comp !== "undefined", "Gage: Component is undefined (so we can't split it)");
                     // Split a Wire
                     if (comp.type === digsim.WIRE && grid[(i+2)%4] && comp.id === grid[(i+2)%4].ref)
                         comp.splitWire(space.row, space.col);

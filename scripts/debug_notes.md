@@ -98,4 +98,11 @@ Wire.checkConnections digsim-all.js:3083
 Digsim.onMouseUp digsim-all.js:4265
 p.event.dispatch jquery.min.js:2
 p.event.add.g.handle.h
+
+
+--- Thu Jun 12 18:36:57 MDT 2014 ---
+
+Today I found that there where tons of array checks that where trying to use instanceof I changed them all to vaid ones. 
+
+Also worked on some places where type checking wasn't done.
 ``
